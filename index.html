@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双向迷宫</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="settings-panel">
+            <button id="toggleSettings" class="settings-toggle">设置 ▼</button>
+            <div id="settingsContent" class="settings-content">
+                <div class="settings">
+                    <label for="rows">行数:</label>
+                    <input type="number" id="rows" min="5" max="30" value="8">
+                
+                <label for="cols">列数:</label>
+                <input type="number" id="cols" min="5" max="30" value="8">
+                    
+                    <button id="generate" class="generate-btn">生成</button>
+                    
+        <div class="setting-item">
+          <button id="darkModeBtn" class="control-btn">背景</button>
+        </div>
+        <div class="setting-item">
+          <button id="trailModeBtn" class="control-btn">轨迹</button>
+        </div>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="mazeCanvas"></canvas>
+    </div>
+    <script src="maze.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
