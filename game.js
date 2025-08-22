@@ -391,31 +391,31 @@ const showTrailCheckbox = document.getElementById('showTrail');
     darkModeBtn.style.transition = 'all 0.3s';
 
     // 更新生成按钮样式
-    generateBtn。style。padding = '5px 15px';
-    generateBtn。style。border = '1px solid #3498db';
-    generateBtn。style。borderRadius = '4px';
-    generateBtn。style。backgroundColor = '#e6f2fa';
-    generateBtn。style。color = '#3498db';
-    generateBtn。style。cursor = 'pointer';
-    generateBtn。style。transition = 'all 0.3s';
+    generateBtn.style.padding = '5px 15px';
+    generateBtn.style.border = '1px solid #3498db';
+    generateBtn.style.borderRadius = '4px';
+    generateBtn.style.backgroundColor = '#e6f2fa';
+    generateBtn.style.color = '#3498db';
+    generateBtn.style.cursor = 'pointer';
+    generateBtn.style.transition = 'all 0.3s';
 
     // 单次按键移动处理
     window.addEventListener('keydown', (e) => {
         if (!maze) return;
 
         // 玩家1 (方向键)
-        if (!player1。autoMoveInterval && e。key === 'ArrowUp' && player1。move('up'， maze)) {
-            if (showTrail) player1。addTrail();
+        if (!player1.autoMoveInterval && e.key === 'ArrowUp' && player1.move('up', maze)) {
+            if (showTrail) player1.addTrail();
             e.preventDefault();
         } else if (!player1.autoMoveInterval && e.key === 'ArrowDown' && player1.move('down', maze)) {
             if (showTrail) player1.addTrail();
             e.preventDefault();
-        } else if (!player1。autoMoveInterval && e。key === 'ArrowLeft' && player1。move('left'， maze)) {
+        } else if (!player1.autoMoveInterval && e.key === 'ArrowLeft' && player1.move('left', maze)) {
             if (showTrail) player1.addTrail();
             e.preventDefault();
-        } else if (!player1。autoMoveInterval && e。key === 'ArrowRight' && player1。move('right'， maze)) {
+        } else if (!player1.autoMoveInterval && e.key === 'ArrowRight' && player1.move('right', maze)) {
             if (showTrail) player1.addTrail();
-            e。preventDefault();
+            e.preventDefault();
         }
 
         // 玩家2 (WASD)
