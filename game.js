@@ -16,6 +16,9 @@ class Player {
         this.y = startY;
         this.color = color;
         this.trail = [];
+        this.autoMoveInterval = null;
+        this.lastDirection = 'right'; // 初始方向
+        this.autoMoveEnabled = false; // 自动移动开关状态
     }
 
     // 移动玩家并返回是否成功
@@ -27,9 +30,55 @@ class Player {
                 case 'left': this.x--; break;
                 case 'right': this.x++; break;
             }
+            this.lastDirection = direction;
             return true;
         }
         return false;
+    }
+
+    // 自动移动 - 使用右手法则
+    autoMove(maze) {
+        // 尝试右转优先
+        const directions = {
+            'up': ['right', 'up', 'left', 'down'],
+            'right': ['down', 'right', 'up', 'left'],
+            'down': ['left', 'down', 'right', 'up'],
+            'left': ['up', 'left', 'down', 'right']
+        };
+        
+        const priority = directions[this.lastDirection];
+        for (const dir of priority) {
+            if (this.move(dir, maze)) {
+                if (showTrail) this.addTrail();
+                return;
+            }
+        }
+    }
+
+    // 开始自动移动
+    startAutoMove(maze) {
+        this.stopAutoMove();
+        this.autoMoveEnabled = true;
+        this.autoMoveInterval = setInterval(() => {
+            this.autoMove(maze);
+        }, 1000);
+    }
+
+    // 停止自动移动
+    stopAutoMove() {
+        this.autoMoveEnabled = false;
+        if (this.autoMoveInterval) {
+            clearInterval(this.autoMoveInterval);
+            this.autoMoveInterval = null;
+        }
+    }
+
+    // 停止自动移动
+    stopAutoMove() {
+        if (this.autoMoveInterval) {
+            clearInterval(this.autoMoveInterval);
+            this.autoMoveInterval = null;
+        }
     }
 
     // 添加轨迹点
@@ -62,15 +111,26 @@ const showTrailCheckbox = document.getElementById('showTrail');
             player2.trail = [];
             resizeCanvas();
             drawGame();
-
     }
 
     // 重置玩家位置
     function resetPlayers() {
         const player1Color = getComputedStyle(document.documentElement).getPropertyValue('--player1-color');
         const player2Color = getComputedStyle(document.documentElement).getPropertyValue('--player2-color');
+        const p1Auto = player1 ? !!player1.autoMoveInterval : false;
+        const p2Auto = player2 ? !!player2.autoMoveInterval : false;
+        
         player1 = new Player(maze.start.x, maze.start.y, player1Color);
         player2 = new Player(maze.end.x, maze.end.y, player2Color);
+        
+        if (p1Auto) {
+            player1.startAutoMove(maze);
+            document.getElementById('autoMoveBtn1').classList.add('active');
+        }
+        if (p2Auto) {
+            player2.startAutoMove(maze);
+            document.getElementById('autoMoveBtn2').classList.add('active');
+        }
     }
 
     // 调整画布大小
@@ -198,6 +258,21 @@ const showTrailCheckbox = document.getElementById('showTrail');
     function gameLoop() {
         if (maze) {
             drawGame();
+            
+            // 检查玩家是否相遇
+            if (player1.x === player2.x && player1.y === player2.y) {
+                setTimeout(() => {
+                    // 创建全新迷宫实例
+                    const rows = parseInt(rowsInput.value);
+                    const cols = parseInt(colsInput.value);
+                    maze = new Maze(rows, cols);
+                    maze.generate();
+                    resetPlayers();
+                    player1.trail = [];
+                    player2.trail = [];
+                    drawGame();
+                }, 1000);
+            }
         }
         requestAnimationFrame(gameLoop);
     }
@@ -232,55 +307,130 @@ const showTrailCheckbox = document.getElementById('showTrail');
           }
     });
 
+    // 创建按钮容器
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.gap = '10px';
+    buttonContainer.style.margin = '10px 0';
+
+    // 自动移动按钮
+    const autoMoveBtn1 = document.createElement('button');
+    autoMoveBtn1.id = 'autoMoveBtn1';
+    autoMoveBtn1.textContent = '蓝';
+    autoMoveBtn1.style.padding = '5px 15px';
+    autoMoveBtn1.style.border = '1px solid #3498db';
+    autoMoveBtn1.style.borderRadius = '4px';
+    autoMoveBtn1.style.backgroundColor = '#e6f2fa';
+    autoMoveBtn1.style.color = '#3498db';
+    autoMoveBtn1.style.cursor = 'pointer';
+    autoMoveBtn1.style.transition = 'all 0.3s';
+    autoMoveBtn1.addEventListener('click', () => {
+        if (player1.autoMoveInterval) {
+            player1.stopAutoMove();
+            autoMoveBtn1.classList.remove('active');
+        } else {
+            player1.startAutoMove(maze);
+            autoMoveBtn1.classList.add('active');
+        }
+        localStorage.setItem('player1AutoMove', !!player1.autoMoveInterval);
+    });
+
+    const autoMoveBtn2 = document.createElement('button');
+    autoMoveBtn2.id = 'autoMoveBtn2';
+    autoMoveBtn2.textContent = '红';
+    autoMoveBtn2.style.padding = '5px 15px';
+    autoMoveBtn2.style.border = '1px solid #e74c3c';
+    autoMoveBtn2.style.borderRadius = '4px';
+    autoMoveBtn2.style.backgroundColor = '#fae6e6';
+    autoMoveBtn2.style.color = '#e74c3c';
+    autoMoveBtn2.style.cursor = 'pointer';
+    autoMoveBtn2.style.transition = 'all 0.3s';
+    autoMoveBtn2.addEventListener('click', () => {
+        if (player2.autoMoveInterval) {
+            player2.stopAutoMove();
+            autoMoveBtn2.classList.remove('active');
+        } else {
+            player2.startAutoMove(maze);
+            autoMoveBtn2.classList.add('active');
+        }
+        localStorage.setItem('player2AutoMove', !!player2.autoMoveInterval);
+    });
+
+    // 初始化自动移动按钮状态
+    if (localStorage.getItem('player1AutoMove') === 'true') {
+        autoMoveBtn1.classList.add('active');
+    }
+    if (localStorage.getItem('player2AutoMove') === 'true') {
+        autoMoveBtn2.classList.add('active');
+    }
+
+    // 添加按钮到容器
+    buttonContainer.appendChild(autoMoveBtn1);
+    buttonContainer.appendChild(autoMoveBtn2);
+    
+    // 将容器添加到设置面板中的settings div
+    const settingsDiv = document.querySelector('.settings');
+    settingsDiv.appendChild(buttonContainer);
+
+    // 更新轨迹按钮样式以匹配
+    trailModeBtn.style.padding = '5px 15px';
+    trailModeBtn.style.border = '1px solid #2ecc71';
+    trailModeBtn.style.borderRadius = '4px';
+    trailModeBtn.style.backgroundColor = '#e6f7ed';
+    trailModeBtn.style.color = '#2ecc71';
+    trailModeBtn.style.cursor = 'pointer';
+    trailModeBtn.style.transition = 'all 0.3s';
+
+    // 更新深色模式按钮样式
+    darkModeBtn.style.padding = '5px 15px';
+    darkModeBtn.style.border = '1px solid #9b59b6';
+    darkModeBtn.style.borderRadius = '4px';
+    darkModeBtn.style.backgroundColor = '#f3e6f8';
+    darkModeBtn.style.color = '#9b59b6';
+    darkModeBtn.style.cursor = 'pointer';
+    darkModeBtn.style.transition = 'all 0.3s';
+
+    // 更新生成按钮样式
+    generateBtn。style。padding = '5px 15px';
+    generateBtn。style。border = '1px solid #3498db';
+    generateBtn。style。borderRadius = '4px';
+    generateBtn。style。backgroundColor = '#e6f2fa';
+    generateBtn。style。color = '#3498db';
+    generateBtn。style。cursor = 'pointer';
+    generateBtn。style。transition = 'all 0.3s';
+
     // 单次按键移动处理
     window.addEventListener('keydown', (e) => {
         if (!maze) return;
 
         // 玩家1 (方向键)
-        if (e.key === 'ArrowUp' && player1.move('up', maze)) {
+        if (!player1。autoMoveInterval && e。key === 'ArrowUp' && player1。move('up'， maze)) {
+            if (showTrail) player1。addTrail();
+            e.preventDefault();
+        } else if (!player1.autoMoveInterval && e.key === 'ArrowDown' && player1.move('down', maze)) {
             if (showTrail) player1.addTrail();
             e.preventDefault();
-        } else if (e.key === 'ArrowDown' && player1.move('down', maze)) {
+        } else if (!player1。autoMoveInterval && e。key === 'ArrowLeft' && player1。move('left'， maze)) {
             if (showTrail) player1.addTrail();
             e.preventDefault();
-        } else if (e.key === 'ArrowLeft' && player1.move('left', maze)) {
+        } else if (!player1。autoMoveInterval && e。key === 'ArrowRight' && player1。move('right'， maze)) {
             if (showTrail) player1.addTrail();
-            e.preventDefault();
-        } else if (e.key === 'ArrowRight' && player1.move('right', maze)) {
-            if (showTrail) player1.addTrail();
-            e.preventDefault();
+            e。preventDefault();
         }
 
         // 玩家2 (WASD)
-        if (e.key === 'w' && player2.move('up', maze)) {
+        if (!player2.autoMoveInterval && e.key === 'w' && player2.move('up', maze)) {
             if (showTrail) player2.addTrail();
             e.preventDefault();
-        } else if (e.key === 's' && player2.move('down', maze)) {
+        } else if (!player2.autoMoveInterval && e.key === 's' && player2.move('down', maze)) {
             if (showTrail) player2.addTrail();
             e.preventDefault();
-        } else if (e.key === 'a' && player2.move('left', maze)) {
+        } else if (!player2.autoMoveInterval && e.key === 'a' && player2.move('left', maze)) {
             if (showTrail) player2.addTrail();
             e.preventDefault();
-        } else if (e.key === 'd' && player2.move('right', maze)) {
+        } else if (!player2.autoMoveInterval && e.key === 'd' && player2.move('right', maze)) {
             if (showTrail) player2.addTrail();
             e.preventDefault();
-        }
-
-        // 检查玩家是否相遇
-        if (player1.x === player2.x && player1.y === player2.y) {
-
-            setTimeout(() => {
-                // 创建全新迷宫实例
-                const rows = parseInt(rowsInput.value);
-                const cols = parseInt(colsInput.value);
-                maze = new Maze(rows, cols);
-                maze.generate();
-            resetPlayers();
-            player1Trail = [];
-            player2Trail = [];
-            drawGame();
-    
-            }, 1000);
         }
     });
 
