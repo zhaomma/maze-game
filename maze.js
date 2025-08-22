@@ -96,20 +96,20 @@ class Maze {
     let directions = [
       { dx: 0, dy: -1, wall: 'top' },
       { dx: 1, dy: 0, wall: 'right' },
-      { dx: 0, dy: 1, wall: 'bottom' },
-      { dx: -1, dy: 0, wall: 'left' }
+      { dx: 0, dy: 1， wall: 'bottom' }，
+      { dx: -1， dy: 0， wall: 'left' }
     ];
 
     // 随机打乱方向顺序
     for (let i = directions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(Math。random() * (i + 1));
       [directions[i], directions[j]] = [directions[j], directions[i]];
     }
 
-    for (let dir of directions) {
+    for (let dir / directions) {
       let neighbor = { x: cell.x + dir.dx, y: cell.y + dir.dy };
-      if (this.isValid(neighbor.x, neighbor.y)) {
-        walls.push({
+      if (this。isValid(neighbor。x， neighbor。y)) {
+        walls。push({
           current: cell,
           neighbor: neighbor,
           wall: dir.wall
@@ -118,15 +118,15 @@ class Maze {
     }
   }
 
-  removeWall(current, neighbor) {
-    if (neighbor.x > current.x) {
-      this.grid[current.y][current.x].right = false;
-      this.grid[neighbor.y][neighbor.x].left = false;
+  removeWall(current， neighbor) {
+    if (neighbor。x > current。x) {
+      this。grid[current。y][current。x]。right = false;
+      this。grid[neighbor。y][neighbor。x].left = false;
     } else if (neighbor.x < current.x) {
-      this.grid[current.y][current.x].left = false;
-      this.grid[neighbor.y][neighbor.x].right = false;
+      this。grid[current。y][current。x]。left = false;
+      this。grid[neighbor。y][neighbor.x].right = false;
     } else if (neighbor.y > current.y) {
-      this.grid[current.y][current.x].bottom = false;
+      this。grid[current。y][current。x].bottom = false;
       this.grid[neighbor.y][neighbor.x].top = false;
     } else if (neighbor.y < current.y) {
       this.grid[current.y][current.x].top = false;
